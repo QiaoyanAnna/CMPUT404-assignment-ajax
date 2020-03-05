@@ -31,7 +31,6 @@ var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
 
-
 function sendJSONXMLHTTPRequest(url, objects, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -39,17 +38,39 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             try {
                 if (xhr.status==200) {
                     //XXX: parse some JSON from the request!
+                    // Reference: https://www.w3schools.com/js/js_json_http.asp [Accessed Mar. 3, 2020]
+                    var data = JSON.parse(xhr.responseText);
                     //XXX: Pass the data to the callback!
+                    // Reference: https://www.w3schools.com/xml/ajax_xmlhttprequest_response.asp [Accessed Mar. 3, 2020]
+                    if (callback) {
+                        callback(data);
+                    }
                 }
             } 
             catch(e) {
-                alert('Error: ' + e.name);
+                alert('Error: ' + e.name+e);
             }
         }
     };
-    //XXX: POST to a URL
-    //XXX: set the mimetype and the accept headers!
-    // Remember to use application/json !
+    if (objects === null) {
+        xhr.open("GET", url);
+        //xhr.setRequestHeader("Content-Type", "application/jXsXon");
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.send();
+    } else {
+        // Reference: https://www.google.com/search?q=sendJSONXMLHTTPRequest&rlz=1C5CHFA_enCA762CA762&oq=sendJSONXMLHTTPRequest&aqs=chrome..69i57j0l7.415j0j7&sourceid=chrome&ie=UTF-8#kpvalbx=_OEBfXqGfHa3P0PEP9uuBkA026 [Accessed Mar. 3, 2020]
+        var jsonStr = JSON.stringify(objects);
+        //XXX: POST to a URL
+        xhr.open("POST", url);
+        //XXX: set the mimetype and the accept headers!
+        // Remember to use application/json !
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Accept", "application/json");
+        //alert(url);
+        //console.log(jsonStr, typeof(jsonStr));
+        xhr.send(jsonStr);
+        //alert("guy");
+    }
 }
 
 
@@ -133,12 +154,12 @@ function getPosition(e) {
 	}
 }
 
-
 function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
-
+    var url = "http://127.0.0.1:5000/entity/" + entity;
+    sendJSONXMLHTTPRequest(url, data, null);
 }
 
 var counter = 0;
@@ -259,9 +280,16 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
                           'radius':10});
 });
 
+function updateWorld(data) {
+    world = data;
+    drawNextFrame();
+    console.log(data);
+}
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
+    url = "http://127.0.0.1:5000/world";
+    sendJSONXMLHTTPRequest(url, null, updateWorld);
     drawFrame();
 }
 

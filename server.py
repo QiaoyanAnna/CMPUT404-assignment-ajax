@@ -22,7 +22,7 @@
 
 
 import flask
-from flask import Flask, request
+from flask import Flask, request, redirect
 import json
 app = Flask(__name__)
 app.debug = True
@@ -74,27 +74,47 @@ def flask_post_json():
 @app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    # Reference: https://stackoverflow.com/questions/14343812/redirecting-to-url-in-flask [Accessed Mar. 3, 2020]
+    return redirect("/static/index.html", code=302)
+    # return None
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    return None
+    ori = myWorld.get(entity)
+    new = flask_post_json()
+    keysToDel = []
+    for key in ori:
+        if key not in new:
+            keysToDel.append(key)
+        else:
+            value = new[key]
+            myWorld.update(entity, key, value)
+
+    for key in keysToDel:
+        ori.pop(key, None)
+
+    for key in new:
+        if key not in ori:
+            myWorld.update(entity, key, new[key])
+
+    return flask.jsonify(myWorld.get(entity))
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return None
+    return flask.jsonify(myWorld.world())
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
-    return None
+    return flask.jsonify(myWorld.get(entity))
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
-    return None
+    myWorld.clear()
+    return flask.jsonify(myWorld.world())
 
 if __name__ == "__main__":
     app.run()

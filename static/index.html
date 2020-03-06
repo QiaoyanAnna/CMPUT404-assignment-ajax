@@ -48,13 +48,12 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
                 }
             } 
             catch(e) {
-                alert('Error: ' + e.name+e);
+                alert('Error: ' + e.name);
             }
         }
     };
     if (objects === null) {
         xhr.open("GET", url);
-        //xhr.setRequestHeader("Content-Type", "application/jXsXon");
         xhr.setRequestHeader("Accept", "application/json");
         xhr.send();
     } else {
@@ -66,10 +65,7 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
         // Remember to use application/json !
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.setRequestHeader("Accept", "application/json");
-        //alert(url);
-        //console.log(jsonStr, typeof(jsonStr));
         xhr.send(jsonStr);
-        //alert("guy");
     }
 }
 
@@ -79,24 +75,35 @@ world = {};
 //XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
     with(context) {
-        beginPath();              
-        lineWidth = 3;
+        beginPath();  
         var x = entity["x"];
-        var y = entity["y"];
+        var y = entity["y"]; 
+        if (!entity["radius"]) {
+            var width = 60;
+            var height = 40;
+            rect(x-width/2, y-height/2, width, height);
+            lineWidth = 7;
+            fillStyle = entity["colour"]
+            if (fillStyle === "#80dfff") {
+                strokeStyle = "#0099cc";
+            } else {
+                strokeStyle = "#ffd700";
+            }
+        } else {
+            arc(x, y, entity["radius"], 0, 2.0 * Math.PI, false);  
+            lineWidth = 1;
+            fillStyle = entity["colour"];
+            strokeStyle = 'white';
+        }
         //moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
+        fill();
         stroke();                                
     }
 }
 
 function prepEntity(entity) {
     if (!entity["colour"]) {
-        entity["colour"] = "#FF0000";
-    }
-    if (!entity["radius"]) {
-        entity["radius"] = 50;
+        entity["colour"] = "#80dfff";
     }
     return entity;
 }
@@ -268,16 +275,17 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'#80dfff'});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'#ffff4d'});
 });
 
+// Reference: https://dev.to/akhil_001/generating-random-color-with-single-line-of-js-code-fhj [Accessed Mar. 6, 2020]
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+    addEntityWithoutName({'x':x,'y':y,'colour': '#'+Math.floor(Math.random()*16777215).toString(16),
+                          'radius': Math.ceil(Math.random() * 10)});
 });
 
 function updateWorld(data) {
